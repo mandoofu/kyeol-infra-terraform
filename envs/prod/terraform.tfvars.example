@@ -1,0 +1,46 @@
+# PROD Environment: 예시 변수 파일
+# 이 파일을 terraform.tfvars로 복사하고 실제 값을 입력하세요.
+# 주의: terraform.tfvars는 .gitignore에 추가하여 Git에 커밋하지 마세요.
+
+# AWS 리전
+aws_region = "ap-southeast-2"
+
+# AWS 계정 ID (필수)
+aws_account_id = "123456789012"
+
+# 프로젝트 설정
+project_name = "kyeol"
+owner_prefix = "min"
+environment  = "prod"
+
+# VPC CIDR (spec.md 기준 - PROD)
+vpc_cidr = "10.30.0.0/16"
+
+# 가용영역 (Sydney - 3개 AZ for Production)
+azs = ["ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2c"]
+
+# EKS 설정 (PROD: 프로덕션급)
+eks_cluster_version     = "1.29"
+eks_node_instance_types = ["t3.xlarge"]
+eks_node_desired_size   = 4
+eks_node_min_size       = 3
+eks_node_max_size       = 10
+
+# RDS 설정 (PROD: Multi-AZ + 삭제 보호 + 백업)
+rds_instance_class          = "db.r6g.large"
+rds_multi_az                = true
+rds_allocated_storage       = 100
+rds_deletion_protection     = true
+rds_backup_retention_period = 30
+
+# Route53 Hosted Zone ID (msp-g1.click)
+hosted_zone_id = "Z0XXXXXXXXXXXX"
+
+# Cache 설정 (PROD: 고성능 클러스터)
+enable_cache    = true
+cache_node_type = "cache.r6g.large"
+cache_num_nodes = 3
+
+# Monitoring (PROD: 상세 모니터링 활성화)
+enable_enhanced_monitoring = true
+enable_cloudwatch_logs     = true

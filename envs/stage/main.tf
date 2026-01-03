@@ -1,16 +1,15 @@
-# DEV Environment: 메인 모듈 구성
-# Phase-1 적용 대상
+# STAGE Environment: 메인 모듈 구성
+# Phase-2 적용 대상
 
 locals {
   name_prefix  = "${var.owner_prefix}-${var.project_name}-${var.environment}"
   cluster_name = "${local.name_prefix}-eks"
 
-  # DEV CIDR 설정 (AWS EKS/RDS는 최소 2개 AZ 서브넷 필요)
-  # spec.md 기준에서 AWS 제약 충족을 위해 2번째 AZ 추가
-  public_subnet_cidrs       = ["10.10.0.0/24", "10.10.1.0/24"]  # 2 AZ (a, c)
-  app_private_subnet_cidrs  = ["10.10.4.0/23", "10.10.6.0/23"]  # 2 AZ (a, c) - EKS 요구사항
-  data_private_subnet_cidrs = ["10.10.9.0/24", "10.10.10.0/24"] # 2 AZ (a, c) - RDS 서브넷 그룹 요구사항
-  # DEV에는 cache subnet 없음
+  # STAGE CIDR 설정 (spec.md 기준)
+  public_subnet_cidrs        = ["10.20.0.0/24", "10.20.1.0/24"]   # 2 AZ (a, c)
+  app_private_subnet_cidrs   = ["10.20.4.0/22", "10.20.8.0/22"]   # 2 AZ (a, c)
+  data_private_subnet_cidrs  = ["10.20.16.0/24", "10.20.17.0/24"] # 2 AZ (a, c)
+  cache_private_subnet_cidrs = ["10.20.24.0/24", "10.20.25.0/24"] # 2 AZ (a, c)
 
   common_tags = {
     Project     = var.project_name
@@ -34,10 +33,10 @@ module "vpc" {
   public_subnet_cidrs        = local.public_subnet_cidrs
   app_private_subnet_cidrs   = local.app_private_subnet_cidrs
   data_private_subnet_cidrs  = local.data_private_subnet_cidrs
-  cache_private_subnet_cidrs = [] # DEV는 cache 없음
+  cache_private_subnet_cidrs = var.enable_cache ? local.cache_private_subnet_cidrs : []
 
   enable_nat_gateway   = true
-  single_nat_gateway   = true
+  single_nat_gateway   = false # STAGE: 2개 NAT Gateway
   enable_vpc_endpoints = true
 
   eks_cluster_name = local.cluster_name
@@ -59,7 +58,7 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.app_private_subnet_ids
 
-  # Node Group
+  # Node Group (STAGE: DEV보다 상향)
   node_instance_types = var.eks_node_instance_types
   node_desired_size   = var.eks_node_desired_size
   node_min_size       = var.eks_node_min_size
@@ -87,10 +86,11 @@ module "rds" {
   subnet_ids         = module.vpc.data_private_subnet_ids
   security_group_ids = module.vpc.rds_security_group_id != null ? [module.vpc.rds_security_group_id] : []
 
-  instance_class = var.rds_instance_class
-  multi_az       = var.rds_multi_az
+  instance_class    = var.rds_instance_class
+  multi_az          = var.rds_multi_az
+  allocated_storage = var.rds_allocated_storage
 
-  # DEV 설정
+  # STAGE 설정
   deletion_protection = false
   skip_final_snapshot = true
 
@@ -98,12 +98,37 @@ module "rds" {
 }
 
 # -----------------------------------------------------------------------------
-# ECR Module
+# Valkey (ElastiCache) Module - STAGE: HA 활성화
+# -----------------------------------------------------------------------------
+module "valkey" {
+  count  = var.enable_cache ? 1 : 0
+  source = "../../modules/valkey"
+
+  name_prefix = local.name_prefix
+  environment = var.environment
+
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.vpc.cache_private_subnet_ids
+  security_group_ids = module.vpc.cache_security_group_id != null ? [module.vpc.cache_security_group_id] : []
+
+  node_type = var.cache_node_type
+
+  # STAGE: HA 설정 (1 replica)
+  replicas_per_node_group    = 1
+  automatic_failover_enabled = true
+  multi_az_enabled           = true
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# ECR Module (환경별 고유 이름으로 충돌 방지)
 # -----------------------------------------------------------------------------
 module "ecr" {
   source = "../../modules/ecr"
 
-  name_prefix = "${var.owner_prefix}-${var.project_name}"
+  # STAGE 전용 ECR: min-kyeol-stage-api 등으로 생성
+  name_prefix = "${var.owner_prefix}-${var.project_name}-${var.environment}"
 
   repository_names = ["api", "storefront", "dashboard"]
 

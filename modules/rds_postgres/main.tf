@@ -17,7 +17,7 @@ resource "random_id" "secret_suffix" {
 resource "aws_secretsmanager_secret" "rds" {
   name                    = "${var.name_prefix}-rds-creds-${random_id.secret_suffix.hex}"
   description             = "RDS PostgreSQL credentials for ${var.name_prefix}"
-  recovery_window_in_days = 0  # 즉시 삭제 허용 (DEV 환경용)
+  recovery_window_in_days = 0 # 즉시 삭제 허용 (DEV 환경용)
 
   tags = merge(var.tags, {
     Name = "${var.name_prefix}-rds-credentials"

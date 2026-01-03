@@ -6,8 +6,8 @@ locals {
   cluster_name = "${local.name_prefix}-eks"
 
   # MGMT CIDR 설정 (spec.md 기준)
-  public_subnet_cidrs      = ["10.40.0.0/24", "10.40.1.0/24"]        # 2 AZ
-  app_private_subnet_cidrs = ["10.40.4.0/22", "10.40.12.0/22"]       # 2 AZ (ops-private)
+  public_subnet_cidrs      = ["10.40.0.0/24", "10.40.1.0/24"]  # 2 AZ
+  app_private_subnet_cidrs = ["10.40.4.0/22", "10.40.12.0/22"] # 2 AZ (ops-private)
   # MGMT에는 data/cache subnet 없음 (ArgoCD/모니터링 전용)
 
   common_tags = {
@@ -24,15 +24,15 @@ locals {
 module "vpc" {
   source = "../../modules/vpc"
 
-  name_prefix  = local.name_prefix
-  environment  = var.environment
-  vpc_cidr     = var.vpc_cidr
-  azs          = var.azs
+  name_prefix = local.name_prefix
+  environment = var.environment
+  vpc_cidr    = var.vpc_cidr
+  azs         = var.azs
 
   public_subnet_cidrs        = local.public_subnet_cidrs
   app_private_subnet_cidrs   = local.app_private_subnet_cidrs
-  data_private_subnet_cidrs  = []  # MGMT는 data subnet 없음
-  cache_private_subnet_cidrs = []  # MGMT는 cache 없음
+  data_private_subnet_cidrs  = [] # MGMT는 data subnet 없음
+  cache_private_subnet_cidrs = [] # MGMT는 cache 없음
 
   enable_nat_gateway   = true
   single_nat_gateway   = true

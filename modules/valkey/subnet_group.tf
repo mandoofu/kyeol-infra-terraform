@@ -1,11 +1,3 @@
-# Valkey (ElastiCache) Module: Subnet Group
-
-resource "aws_elasticache_subnet_group" "main" {
-  name        = "${var.name_prefix}-cache-subnet-group"
-  description = "ElastiCache subnet group for ${var.name_prefix}"
-  subnet_ids  = var.subnet_ids
-
-  tags = merge(var.tags, {
-    Name = "${var.name_prefix}-cache-subnet-group"
-  })
-}
+# 이 파일은 더 이상 사용되지 않습니다.
+# Subnet Group 정의는 main.tf로 통합되었습니다.
+# 기존 파일 삭제 대신 빈 상태로 유지합니다.

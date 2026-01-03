@@ -41,7 +41,7 @@ variable "db_username" {
 variable "engine_version" {
   description = "PostgreSQL 엔진 버전"
   type        = string
-  default     = "16"  # ap-southeast-2에서 사용 가능한 버전
+  default     = "16" # ap-southeast-2에서 사용 가능한 버전
 }
 
 variable "instance_class" {

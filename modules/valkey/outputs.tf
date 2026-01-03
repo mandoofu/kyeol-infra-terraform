@@ -1,23 +1,30 @@
-# Valkey (ElastiCache) Module: 출력값
+# Valkey/Redis (ElastiCache) Module: 출력값
+# Replication Group 기반 outputs
 
-output "cache_cluster_id" {
-  description = "ElastiCache 클러스터 ID"
-  value       = aws_elasticache_cluster.main.id
+output "replication_group_id" {
+  description = "Replication Group ID"
+  value       = aws_elasticache_replication_group.main.id
 }
 
-output "cache_cluster_arn" {
-  description = "ElastiCache 클러스터 ARN"
-  value       = aws_elasticache_cluster.main.arn
+output "replication_group_arn" {
+  description = "Replication Group ARN"
+  value       = aws_elasticache_replication_group.main.arn
 }
 
-output "cache_nodes" {
-  description = "캐시 노드 목록"
-  value       = aws_elasticache_cluster.main.cache_nodes
+output "primary_endpoint_address" {
+  description = "Primary 엔드포인트 주소 (쓰기용)"
+  value       = aws_elasticache_replication_group.main.primary_endpoint_address
 }
 
+output "reader_endpoint_address" {
+  description = "Reader 엔드포인트 주소 (읽기용, replica가 있을 때)"
+  value       = aws_elasticache_replication_group.main.reader_endpoint_address
+}
+
+# 기존 호환용 outputs (envs/*/outputs.tf에서 참조)
 output "cache_endpoint" {
-  description = "캐시 엔드포인트 (첫 번째 노드)"
-  value       = length(aws_elasticache_cluster.main.cache_nodes) > 0 ? aws_elasticache_cluster.main.cache_nodes[0].address : null
+  description = "캐시 Primary 엔드포인트 (기존 호환용)"
+  value       = aws_elasticache_replication_group.main.primary_endpoint_address
 }
 
 output "cache_port" {
@@ -28,4 +35,15 @@ output "cache_port" {
 output "subnet_group_name" {
   description = "서브넷 그룹 이름"
   value       = aws_elasticache_subnet_group.main.name
+}
+
+# HA 상태 정보
+output "ha_status" {
+  description = "HA 구성 상태"
+  value = {
+    replicas_per_node_group    = var.replicas_per_node_group
+    automatic_failover_enabled = aws_elasticache_replication_group.main.automatic_failover_enabled
+    multi_az_enabled           = aws_elasticache_replication_group.main.multi_az_enabled
+    node_type                  = var.node_type
+  }
 }
