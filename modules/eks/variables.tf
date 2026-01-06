@@ -138,3 +138,42 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# =============================================================================
+# Payment Node Group (결제 전용 - PROD 전용)
+# =============================================================================
+variable "enable_payment_node_group" {
+  description = "결제 전용 Node Group 생성 여부"
+  type        = bool
+  default     = false
+}
+
+variable "payment_subnet_ids" {
+  description = "결제 Node Group이 배치될 서브넷 ID 목록"
+  type        = list(string)
+  default     = []
+}
+
+variable "payment_node_instance_types" {
+  description = "결제 노드 인스턴스 타입"
+  type        = list(string)
+  default     = ["t3.medium"]
+}
+
+variable "payment_node_desired_size" {
+  description = "결제 노드 희망 크기"
+  type        = number
+  default     = 1
+}
+
+variable "payment_node_min_size" {
+  description = "결제 노드 최소 크기"
+  type        = number
+  default     = 1
+}
+
+variable "payment_node_max_size" {
+  description = "결제 노드 최대 크기"
+  type        = number
+  default     = 2
+}

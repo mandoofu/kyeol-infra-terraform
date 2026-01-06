@@ -46,7 +46,7 @@ resource "aws_iam_role_policy_attachment" "node_ssm" {
 }
 
 # -----------------------------------------------------------------------------
-# Managed Node Group
+# Managed Node Group (일반 워크로드)
 # -----------------------------------------------------------------------------
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
@@ -71,10 +71,67 @@ resource "aws_eks_node_group" "main" {
   labels = {
     Environment = var.environment
     NodeGroup   = var.node_group_name
+    node-type   = "general"
   }
 
   tags = merge(var.tags, {
     Name = "${var.name_prefix}-eks-node"
+  })
+
+  depends_on = [
+    aws_iam_role_policy_attachment.node_worker,
+    aws_iam_role_policy_attachment.node_cni,
+    aws_iam_role_policy_attachment.node_ecr,
+  ]
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Payment Node Group (결제 전용 워크로드)
+# Payment Subnet에 배치, 결제 NAT Gateway 사용
+# -----------------------------------------------------------------------------
+resource "aws_eks_node_group" "payment" {
+  count = var.enable_payment_node_group ? 1 : 0
+
+  cluster_name    = aws_eks_cluster.main.name
+  node_group_name = "${var.name_prefix}-payment"
+  node_role_arn   = aws_iam_role.node_group.arn
+  subnet_ids      = var.payment_subnet_ids
+
+  instance_types = var.payment_node_instance_types
+  capacity_type  = "ON_DEMAND"  # 결제는 안정성 우선
+  disk_size      = var.node_disk_size
+
+  scaling_config {
+    desired_size = var.payment_node_desired_size
+    min_size     = var.payment_node_min_size
+    max_size     = var.payment_node_max_size
+  }
+
+  update_config {
+    max_unavailable = 1
+  }
+
+  labels = {
+    Environment = var.environment
+    NodeGroup   = "payment"
+    node-type   = "payment"
+    purpose     = "payment-gateway"
+  }
+
+  # Taint: 결제 Pod만 스케줄링 허용
+  taint {
+    key    = "payment"
+    value  = "true"
+    effect = "NO_SCHEDULE"
+  }
+
+  tags = merge(var.tags, {
+    Name    = "${var.name_prefix}-eks-payment-node"
+    Purpose = "payment-gateway"
   })
 
   depends_on = [
