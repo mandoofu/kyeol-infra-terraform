@@ -63,6 +63,19 @@ variable "enable_vpc_endpoints" {
   default     = true
 }
 
+# 결제 전용 NAT Gateway (PROD 전용)
+variable "enable_payment_nat" {
+  description = "결제 전용 NAT Gateway 생성 (PG사 화이트리스트용 고정 EIP)"
+  type        = bool
+  default     = false
+}
+
+variable "payment_subnet_cidrs" {
+  description = "결제 전용 서브넷 CIDR 목록 (결제 Pod가 배치될 서브넷)"
+  type        = list(string)
+  default     = []
+}
+
 # Tags
 variable "tags" {
   description = "추가 태그"

@@ -80,3 +80,19 @@ output "azs" {
   description = "사용된 가용영역 목록"
   value       = var.azs
 }
+
+# 결제 전용 NAT Gateway (PROD 전용)
+output "payment_nat_public_ip" {
+  description = "결제 전용 NAT Gateway Public IP (PG사 화이트리스트용)"
+  value       = var.enable_payment_nat ? aws_eip.payment[0].public_ip : null
+}
+
+output "payment_route_table_id" {
+  description = "결제 전용 Route Table ID"
+  value       = var.enable_payment_nat ? aws_route_table.payment[0].id : null
+}
+
+output "payment_subnet_ids" {
+  description = "결제 전용 서브넷 ID 목록"
+  value       = aws_subnet.payment_private[*].id
+}

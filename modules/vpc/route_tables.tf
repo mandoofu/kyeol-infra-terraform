@@ -67,3 +67,14 @@ resource "aws_route_table_association" "cache_private" {
   subnet_id      = aws_subnet.cache_private[count.index].id
   route_table_id = aws_route_table.private.id
 }
+
+# -----------------------------------------------------------------------------
+# Payment Private 서브넷 연결 (결제 전용 Route Table에 연결)
+# 이 서브넷의 모든 외부 트래픽은 결제 전용 NAT Gateway를 통과
+# -----------------------------------------------------------------------------
+resource "aws_route_table_association" "payment_private" {
+  count = var.enable_payment_nat ? length(aws_subnet.payment_private) : 0
+
+  subnet_id      = aws_subnet.payment_private[count.index].id
+  route_table_id = aws_route_table.payment[0].id
+}
