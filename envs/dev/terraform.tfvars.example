@@ -1,34 +1,64 @@
-# DEV Environment: 예시 변수 파일
-# 이 파일을 terraform.tfvars로 복사하고 실제 값을 입력하세요.
+# DEV Environment: 테스트/포트폴리오용 최소 스펙
+# 비용 최적화 버전 (2026-01-06)
 
 # AWS 리전
 aws_region = "ap-southeast-2"
 
 # AWS 계정 ID (필수)
-aws_account_id = "123456789012"
+aws_account_id = "827913617839"
 
 # 프로젝트 설정
 project_name = "kyeol"
 owner_prefix = "min"
 environment  = "dev"
 
-# VPC CIDR (spec.md 기준)
+# VPC CIDR
 vpc_cidr = "10.10.0.0/16"
 
-# 가용영역 (Sydney)
+# 가용영역 (2AZ - 비용 최적화)
 azs = ["ap-southeast-2a", "ap-southeast-2c"]
 
-# EKS 설정
-eks_cluster_version     = "1.29"
-eks_node_instance_types = ["t3.medium"]
-eks_node_desired_size   = 2
+# =============================================================================
+# EKS 설정 (최소 스펙)
+# =============================================================================
+eks_cluster_version     = "1.32"  # 1.29 → 1.32 (Standard support until 2026-03)
+eks_node_instance_types = ["t3.small"]  # t3.medium → t3.small
+eks_node_desired_size   = 1             # 2 → 1
 eks_node_min_size       = 1
 eks_node_max_size       = 2
 
-# RDS 설정 (DEV: 단일 AZ)
-rds_instance_class = "db.t3.small"
-rds_multi_az       = false
+# =============================================================================
+# RDS 설정 (최소 스펙)
+# =============================================================================
+rds_instance_class      = "db.t4g.micro"  # t3.small → t4g.micro
+rds_multi_az            = false
+rds_allocated_storage   = 20
+rds_deletion_protection = false           # 테스트 환경: 삭제 가능
 
-# Route53 Hosted Zone ID (msp-g1.click)
-# ExternalDNS가 origin-dev-kyeol.msp-g1.click 레코드를 관리합니다.
-hosted_zone_id = "Z0XXXXXXXXXXXX"
+# Route53 Hosted Zone ID
+hosted_zone_id = "ZXXXXXXXXXX"
+
+# =============================================================================
+# Cache (비활성화 - 비용 절감)
+# =============================================================================
+enable_cache = false
+
+# =============================================================================
+# VPC Endpoints (S3만 유지 - 비용 최적화)
+# =============================================================================
+enable_s3_endpoint   = true
+enable_ecr_endpoints = false
+enable_logs_endpoint = false
+enable_sts_endpoint  = false
+
+# =============================================================================
+# S3/로깅 (최소화)
+# =============================================================================
+enable_phase3_s3       = false  # 테스트 환경: S3 버킷 불필요
+logs_retention_days    = 7
+enable_fluent_bit_irsa = false  # 로그 수집 비활성화
+
+# =============================================================================
+# CloudTrail/WAF/CloudFront (비활성화)
+# =============================================================================
+enable_cloudtrail = false

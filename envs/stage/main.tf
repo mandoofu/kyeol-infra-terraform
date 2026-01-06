@@ -39,6 +39,11 @@ module "vpc" {
   single_nat_gateway   = false # STAGE: 2개 NAT Gateway
   enable_vpc_endpoints = true
 
+  # Phase 3: VPC Endpoints
+  enable_s3_endpoint   = var.enable_s3_endpoint
+  enable_ecr_endpoints = var.enable_ecr_endpoints
+  enable_logs_endpoint = var.enable_logs_endpoint
+
   eks_cluster_name = local.cluster_name
 
   tags = local.common_tags
@@ -69,6 +74,9 @@ module "eks" {
   enable_alb_controller_irsa  = true
   enable_external_dns_irsa    = true
   external_dns_hosted_zone_id = var.hosted_zone_id
+
+  # Phase 3: Fluent Bit IRSA
+  enable_fluent_bit_irsa = var.enable_fluent_bit_irsa
 
   tags = local.common_tags
 }
@@ -131,6 +139,69 @@ module "ecr" {
   name_prefix = "${var.owner_prefix}-${var.project_name}-${var.environment}"
 
   repository_names = ["api", "storefront", "dashboard"]
+
+  tags = local.common_tags
+}
+
+# =============================================================================
+# Phase 3: 보안 & 모니터링 모듈
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# S3 Module (미디어 + 로그 버킷)
+# -----------------------------------------------------------------------------
+module "s3_phase3" {
+  source = "../../modules/s3"
+  count  = var.enable_phase3_s3 ? 1 : 0
+
+  name_prefix            = local.name_prefix
+  environment            = var.environment
+  create_media_bucket    = true
+  create_logs_bucket     = true
+  create_waf_logs_bucket = false  # WAF 로그는 MGMT에서 중앙 관리
+  logs_retention_days    = var.logs_retention_days
+
+  tags = local.common_tags
+}
+
+
+# -----------------------------------------------------------------------------
+# Origin 도메인 Route53 레코드 (CloudFront용)
+# -----------------------------------------------------------------------------
+resource "aws_route53_record" "origin" {
+  count = var.enable_cloudfront && var.cloudfront_origin_alb_dns != "" ? 1 : 0
+
+  zone_id = var.hosted_zone_id
+  name    = "origin-${var.environment}.${var.domain}"
+  type    = "A"
+
+  alias {
+    name                   = var.cloudfront_origin_alb_dns
+    zone_id                = var.cloudfront_origin_alb_zone_id
+    evaluate_target_health = true
+  }
+}
+
+
+# -----------------------------------------------------------------------------
+# CloudTrail Module (P0: 계정당 1개 권장)
+# STAGE에서는 기본 OFF - prod에서만 활성화 권장
+# -----------------------------------------------------------------------------
+module "cloudtrail" {
+  source = "../../modules/cloudtrail"
+  count  = var.enable_cloudtrail ? 1 : 0
+
+  name_prefix    = local.name_prefix
+  environment    = var.environment
+  aws_account_id = var.aws_account_id
+
+  enable_cloudtrail      = true
+  enable_data_events     = var.enable_cloudtrail_data_events
+  enable_cloudwatch_logs = var.enable_cloudtrail_cloudwatch
+
+  # KMS 암호화 (STAGE/PROD 권장)
+  enable_kms_encryption = var.enable_cloudtrail_kms
+  kms_key_arn           = var.cloudtrail_kms_key_arn
 
   tags = local.common_tags
 }

@@ -89,3 +89,39 @@ output "ecr_repository_urls" {
   description = "ECR 리포지토리 URLs"
   value       = module.ecr.repository_urls
 }
+
+# =============================================================================
+# Phase 3: 보안 & 모니터링 Outputs
+# =============================================================================
+
+# Fluent Bit IRSA
+output "fluent_bit_role_arn" {
+  description = "Fluent Bit IRSA Role ARN"
+  value       = var.enable_fluent_bit_irsa ? module.eks.fluent_bit_role_arn : null
+}
+
+# S3
+output "s3_media_bucket_id" {
+  description = "미디어 버킷 ID"
+  value       = var.enable_phase3_s3 ? module.s3_phase3[0].media_bucket_id : null
+}
+
+output "s3_logs_bucket_id" {
+  description = "로그 버킷 ID"
+  value       = var.enable_phase3_s3 ? module.s3_phase3[0].logs_bucket_id : null
+}
+
+# WAF/CloudFront → MGMT 환경에서 관리
+# terraform output -state=../mgmt/terraform.tfstate global_waf_arn
+# terraform output -state=../mgmt/terraform.tfstate cloudfront_domain_name
+
+# CloudTrail
+output "cloudtrail_arn" {
+  description = "CloudTrail ARN"
+  value       = var.enable_cloudtrail ? module.cloudtrail[0].cloudtrail_arn : null
+}
+
+output "audit_bucket_id" {
+  description = "Audit 로그 버킷 ID"
+  value       = var.enable_cloudtrail ? module.cloudtrail[0].audit_bucket_id : null
+}
