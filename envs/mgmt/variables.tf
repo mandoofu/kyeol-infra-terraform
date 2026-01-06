@@ -79,3 +79,62 @@ variable "hosted_zone_id" {
   type        = string
   default     = ""
 }
+
+# =============================================================================
+# Phase 3: Global WAF + CloudFront (MGMT에서 생성, 모든 환경 공유)
+# =============================================================================
+
+variable "enable_global_waf" {
+  description = "Global WAF 생성 (CloudFront용, us-east-1)"
+  type        = bool
+  default     = false
+}
+
+variable "waf_rate_limit" {
+  description = "WAF Rate Limit (5분당 요청 수)"
+  type        = number
+  default     = 5000
+}
+
+variable "enable_waf_logging" {
+  description = "WAF 로그를 S3에 저장 (us-east-1에 버킷 생성)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cloudfront" {
+  description = "CloudFront 생성"
+  type        = bool
+  default     = false
+}
+
+variable "cloudfront_acm_arn" {
+  description = "CloudFront용 ACM 인증서 ARN (us-east-1)"
+  type        = string
+  default     = ""
+}
+
+variable "domain" {
+  description = "기본 도메인 (예: msp-g1.click)"
+  type        = string
+  default     = "msp-g1.click"
+}
+
+# Origin 도메인 (환경별)
+variable "origin_domain_dev" {
+  description = "DEV Origin 도메인 (origin-dev.domain)"
+  type        = string
+  default     = ""
+}
+
+variable "origin_domain_stage" {
+  description = "STAGE Origin 도메인 (origin-stage.domain)"
+  type        = string
+  default     = ""
+}
+
+variable "origin_domain_prod" {
+  description = "PROD Origin 도메인 (origin-prod.domain)"
+  type        = string
+  default     = ""
+}

@@ -12,3 +12,18 @@ provider "aws" {
     }
   }
 }
+
+# us-east-1 Provider (Global WAF, CloudFront ACM)
+provider "aws" {
+  alias  = "virginia"
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Project     = "kyeol"
+      Environment = "mgmt"
+      ManagedBy   = "terraform"
+      Owner       = "min"
+    }
+  }
+}

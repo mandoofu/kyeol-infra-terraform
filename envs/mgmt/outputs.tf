@@ -57,3 +57,27 @@ output "kubeconfig_command" {
   description = "kubeconfig 설정 명령어"
   value       = module.eks.kubeconfig_command
 }
+
+# =============================================================================
+# Phase 3: Global WAF + CloudFront Outputs
+# =============================================================================
+
+output "global_waf_arn" {
+  description = "Global WAF Web ACL ARN (모든 환경 공유)"
+  value       = var.enable_global_waf ? module.waf_global[0].web_acl_arn : null
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront Distribution ID"
+  value       = var.enable_cloudfront ? module.cloudfront[0].distribution_id : null
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront 도메인"
+  value       = var.enable_cloudfront ? module.cloudfront[0].distribution_domain_name : null
+}
+
+output "waf_logs_bucket" {
+  description = "Global WAF 로그 버킷 (us-east-1)"
+  value       = var.enable_global_waf && var.enable_waf_logging ? aws_s3_bucket.waf_logs[0].id : null
+}

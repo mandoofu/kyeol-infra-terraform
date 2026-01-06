@@ -73,3 +73,115 @@ module "eks" {
 }
 
 # Note: MGMT 환경에는 RDS/Cache 없음 (ArgoCD/모니터링 전용)
+
+# =============================================================================
+# Phase 3: Global WAF (CloudFront용, us-east-1)
+# 모든 환경(DEV/STAGE/PROD)이 이 WAF를 공유
+# =============================================================================
+
+# WAF 로그용 S3 버킷 (us-east-1에 생성 필요)
+resource "aws_s3_bucket" "waf_logs" {
+  count    = var.enable_global_waf && var.enable_waf_logging ? 1 : 0
+  provider = aws.virginia
+
+  bucket = "aws-waf-logs-${var.owner_prefix}-${var.project_name}-global"
+
+  tags = merge(local.common_tags, {
+    Name    = "aws-waf-logs-${var.owner_prefix}-${var.project_name}-global"
+    Purpose = "waf-log-storage"
+    Phase   = "3"
+    Region  = "us-east-1"
+  })
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "waf_logs" {
+  count    = var.enable_global_waf && var.enable_waf_logging ? 1 : 0
+  provider = aws.virginia
+  bucket   = aws_s3_bucket.waf_logs[0].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "waf_logs" {
+  count    = var.enable_global_waf && var.enable_waf_logging ? 1 : 0
+  provider = aws.virginia
+  bucket   = aws_s3_bucket.waf_logs[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "waf_logs" {
+  count    = var.enable_global_waf && var.enable_waf_logging ? 1 : 0
+  provider = aws.virginia
+  bucket   = aws_s3_bucket.waf_logs[0].id
+
+  rule {
+    id     = "expire-waf-logs"
+    status = "Enabled"
+
+    filter {}
+
+    # ISMS-P 2.10.1: 보안 로그 최소 1년 보관
+    expiration {
+      days = 365
+    }
+
+    # 90일 후 Glacier로 전환 (비용 절감)
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+  }
+}
+
+module "waf_global" {
+  source = "../../modules/waf_global"
+  count  = var.enable_global_waf ? 1 : 0
+
+  providers = {
+    aws = aws.virginia
+  }
+
+  name_prefix         = "${var.owner_prefix}-${var.project_name}"
+  rate_limit          = var.waf_rate_limit
+  enable_logging      = var.enable_waf_logging
+  waf_logs_bucket_arn = var.enable_waf_logging ? aws_s3_bucket.waf_logs[0].arn : ""
+
+  tags = local.common_tags
+
+  depends_on = [
+    aws_s3_bucket.waf_logs,
+    aws_s3_bucket_public_access_block.waf_logs
+  ]
+}
+
+# =============================================================================
+# Phase 3: CloudFront (PROD용 - 단일 배포)
+# origin-prod.domain으로 요청 라우팅
+# =============================================================================
+module "cloudfront" {
+  source = "../../modules/cloudfront"
+  count  = var.enable_cloudfront ? 1 : 0
+
+  providers = {
+    aws = aws.virginia
+  }
+
+  name_prefix         = "${var.owner_prefix}-${var.project_name}"
+  environment         = "prod"  # CloudFront는 PROD 대표
+  domain              = var.domain
+  domain_aliases      = [var.domain, "www.${var.domain}"]
+  origin_domain       = "origin-prod.${var.domain}"
+  acm_certificate_arn = var.cloudfront_acm_arn
+  waf_global_arn      = var.enable_global_waf ? module.waf_global[0].web_acl_arn : ""
+  price_class         = "PriceClass_All"
+
+  tags = local.common_tags
+}
