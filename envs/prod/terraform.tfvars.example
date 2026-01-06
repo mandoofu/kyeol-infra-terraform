@@ -1,46 +1,86 @@
-# PROD Environment: 예시 변수 파일
-# 이 파일을 terraform.tfvars로 복사하고 실제 값을 입력하세요.
-# 주의: terraform.tfvars는 .gitignore에 추가하여 Git에 커밋하지 마세요.
+# PROD Environment: 테스트/포트폴리오용 최소 스펙
+# 비용 최적화 버전 (2026-01-06)
+# ⚠️ 주의: 실 운영용이 아닌 테스트/데모 전용 설정
 
 # AWS 리전
 aws_region = "ap-southeast-2"
 
 # AWS 계정 ID (필수)
-aws_account_id = "123456789012"
+aws_account_id = "827913617839"
 
 # 프로젝트 설정
 project_name = "kyeol"
 owner_prefix = "min"
 environment  = "prod"
 
-# VPC CIDR (spec.md 기준 - PROD)
+# VPC CIDR
 vpc_cidr = "10.30.0.0/16"
 
-# 가용영역 (Sydney - 3개 AZ for Production)
-azs = ["ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2c"]
+# 가용영역 (2AZ - 비용 최적화, 3AZ → 2AZ)
+azs = ["ap-southeast-2a", "ap-southeast-2c"]
 
-# EKS 설정 (PROD: 프로덕션급)
-eks_cluster_version     = "1.29"
-eks_node_instance_types = ["t3.xlarge"]
-eks_node_desired_size   = 4
-eks_node_min_size       = 3
-eks_node_max_size       = 10
+# =============================================================================
+# EKS 설정 (테스트 스펙)
+# =============================================================================
+eks_cluster_version     = "1.32"  # 1.29 → 1.32 (Standard support until 2026-03)
+eks_node_instance_types = ["t3.medium"]   # t3.xlarge → t3.medium
+eks_node_desired_size   = 2               # 4 → 2
+eks_node_min_size       = 1               # 3 → 1
+eks_node_max_size       = 3               # 10 → 3
 
-# RDS 설정 (PROD: Multi-AZ + 삭제 보호 + 백업)
-rds_instance_class          = "db.r6g.large"
-rds_multi_az                = true
-rds_allocated_storage       = 100
-rds_deletion_protection     = true
-rds_backup_retention_period = 30
+# =============================================================================
+# RDS 설정 (테스트 스펙)
+# =============================================================================
+rds_instance_class          = "db.t4g.small"  # r6g.large → t4g.small
+rds_multi_az                = false           # Multi-AZ 비활성화
+rds_allocated_storage       = 30              # 100GB → 30GB
+rds_deletion_protection     = false           # 삭제 보호 비활성화
+rds_backup_retention_period = 1               # 30일 → 1일
 
-# Route53 Hosted Zone ID (msp-g1.click)
-hosted_zone_id = "Z0XXXXXXXXXXXX"
+# Route53 Hosted Zone ID
+hosted_zone_id = "ZXXXXXXXXXX"
 
-# Cache 설정 (PROD: 고성능 클러스터)
-enable_cache    = true
-cache_node_type = "cache.r6g.large"
-cache_num_nodes = 3
+# =============================================================================
+# Cache (비활성화 - 비용 절감)
+# =============================================================================
+enable_cache = false  # true → false
 
-# Monitoring (PROD: 상세 모니터링 활성화)
-enable_enhanced_monitoring = true
-enable_cloudwatch_logs     = true
+# Monitoring (비활성화)
+enable_enhanced_monitoring = false
+enable_cloudwatch_logs     = false
+
+# =============================================================================
+# VPC Endpoints (S3만 유지 - 비용 최적화)
+# =============================================================================
+enable_s3_endpoint   = true
+enable_ecr_endpoints = false  # true → false
+enable_logs_endpoint = false  # true → false
+enable_sts_endpoint  = false  # true → false
+
+# =============================================================================
+# 결제 전용 NAT + 격리 서브넷 (PG사 화이트리스트용)
+# =============================================================================
+enable_payment_nat = true
+
+# 결제 전용 Node Group (Taint: payment=true:NoSchedule)
+payment_node_instance_types = ["t3.small"]
+payment_node_desired_size   = 1
+payment_node_min_size       = 1
+payment_node_max_size       = 2
+
+# =============================================================================
+# S3/로깅 (최소화)
+# =============================================================================
+enable_phase3_s3          = false  # S3 버킷 불필요
+logs_retention_days       = 7
+enable_kms_encryption     = false
+enable_glacier_transition = false
+enable_fluent_bit_irsa    = false
+
+# =============================================================================
+# CloudTrail (비활성화 - 테스트 환경)
+# =============================================================================
+enable_cloudtrail             = false  # true → false
+enable_cloudtrail_data_events = false
+enable_cloudtrail_cloudwatch  = false
+enable_cloudtrail_kms         = false

@@ -21,6 +21,22 @@ output "data_private_subnet_ids" {
   value       = module.vpc.data_private_subnet_ids
 }
 
+# 결제 전용 NAT Gateway (PG사 화이트리스트용)
+output "payment_nat_public_ip" {
+  description = "결제 전용 NAT Gateway EIP (PG사에 등록)"
+  value       = module.vpc.payment_nat_public_ip
+}
+
+output "payment_route_table_id" {
+  description = "결제 전용 Route Table ID"
+  value       = module.vpc.payment_route_table_id
+}
+
+output "payment_subnet_ids" {
+  description = "결제 전용 서브넷 IDs (결제 Pod 배치용)"
+  value       = module.vpc.payment_subnet_ids
+}
+
 # EKS
 output "eks_cluster_name" {
   description = "EKS 클러스터 이름"
@@ -107,4 +123,40 @@ output "production_checklist" {
     monitoring_enabled      = var.enable_enhanced_monitoring
     logging_enabled         = var.enable_cloudwatch_logs
   }
+}
+
+# =============================================================================
+# Phase 3: 보안 & 모니터링 Outputs
+# =============================================================================
+
+# Fluent Bit IRSA
+output "fluent_bit_role_arn" {
+  description = "Fluent Bit IRSA Role ARN"
+  value       = var.enable_fluent_bit_irsa ? module.eks.fluent_bit_role_arn : null
+}
+
+# S3
+output "s3_media_bucket_id" {
+  description = "미디어 버킷 ID"
+  value       = var.enable_phase3_s3 ? module.s3_phase3[0].media_bucket_id : null
+}
+
+output "s3_logs_bucket_id" {
+  description = "로그 버킷 ID"
+  value       = var.enable_phase3_s3 ? module.s3_phase3[0].logs_bucket_id : null
+}
+
+# WAF/CloudFront → MGMT 환경에서 관리
+# terraform output -state=../mgmt/terraform.tfstate global_waf_arn
+# terraform output -state=../mgmt/terraform.tfstate cloudfront_domain_name
+
+# CloudTrail
+output "cloudtrail_arn" {
+  description = "CloudTrail ARN"
+  value       = var.enable_cloudtrail ? module.cloudtrail[0].cloudtrail_arn : null
+}
+
+output "audit_bucket_id" {
+  description = "Audit 로그 버킷 ID"
+  value       = var.enable_cloudtrail ? module.cloudtrail[0].audit_bucket_id : null
 }
