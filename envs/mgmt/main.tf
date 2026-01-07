@@ -185,3 +185,33 @@ module "cloudfront" {
 
   tags = local.common_tags
 }
+
+# =============================================================================
+# Phase 3: CloudTrail - 중앙 수집 모델 (계정 단일)
+# 모든 리전, 모든 환경(DEV/STAGE/PROD)의 감사 로그를 중앙 S3로 수집
+# =============================================================================
+module "cloudtrail" {
+  source = "../../modules/cloudtrail"
+  count  = var.enable_cloudtrail ? 1 : 0
+
+  name_prefix    = "${var.owner_prefix}-${var.project_name}-central"
+  environment    = "mgmt"
+  aws_account_id = var.aws_account_id
+
+  enable_cloudtrail = true
+
+  # 비용 최적화: 관리 이벤트만 수집 (ISMS-P 충족)
+  # 데이터 이벤트(S3/Lambda)는 비용 높음 → 필요 시에만 활성화
+  enable_data_events = var.enable_cloudtrail_data_events
+
+  # CloudWatch Logs 연동 (실시간 알람 필요 시에만)
+  enable_cloudwatch_logs         = var.enable_cloudtrail_cloudwatch
+  cloudwatch_log_group_retention = var.cloudtrail_log_retention_days
+
+  # KMS 암호화 (ISMS-P 권장)
+  enable_kms_encryption = var.enable_cloudtrail_kms
+  kms_key_arn           = var.cloudtrail_kms_key_arn
+
+  tags = local.common_tags
+}
+

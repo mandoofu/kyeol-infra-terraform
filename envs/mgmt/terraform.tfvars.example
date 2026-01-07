@@ -41,3 +41,20 @@ enable_waf_logging = false  # true → false
 enable_cloudfront  = false  # true → false
 cloudfront_acm_arn = ""
 domain             = "msp-g1.click"
+
+# =============================================================================
+# CloudTrail - 중앙 수집 모델 (MGMT 단일)
+# 계정 전체 감사 로그를 MGMT에서 단일 Trail로 수집
+# DEV/STAGE/PROD에서는 CloudTrail을 생성하지 않음
+# =============================================================================
+enable_cloudtrail = true   # MGMT에서만 활성화
+
+# 비용 최적화 설정
+enable_cloudtrail_data_events = false  # S3/Lambda 데이터 이벤트 OFF (비용 절감)
+enable_cloudtrail_cloudwatch  = false  # CloudWatch Logs OFF (실시간 알람 불필요 시)
+cloudtrail_log_retention_days = 30
+
+# KMS 암호화 (ISMS-P 권장, 테스트 환경에서는 OFF)
+enable_cloudtrail_kms  = false
+cloudtrail_kms_key_arn = ""
+

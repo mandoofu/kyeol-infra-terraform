@@ -138,3 +138,45 @@ variable "origin_domain_prod" {
   type        = string
   default     = ""
 }
+
+# =============================================================================
+# Phase 3: CloudTrail - 중앙 수집 모델 (MGMT 단일)
+# 계정 전체 감사 로그를 MGMT에서 단일 Trail로 수집
+# DEV/STAGE/PROD에서는 CloudTrail을 생성하지 않음
+# =============================================================================
+variable "enable_cloudtrail" {
+  description = "CloudTrail 중앙 수집 활성화 (MGMT에서만 true)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cloudtrail_data_events" {
+  description = "S3/Lambda 데이터 이벤트 로깅 (비용 높음, 필요 시에만)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cloudtrail_cloudwatch" {
+  description = "CloudWatch Logs 연동 (실시간 알람 필요 시에만)"
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_log_retention_days" {
+  description = "CloudWatch Logs 보존 기간 (일)"
+  type        = number
+  default     = 30
+}
+
+variable "enable_cloudtrail_kms" {
+  description = "KMS 암호화 활성화 (ISMS-P 권장)"
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_kms_key_arn" {
+  description = "CloudTrail KMS 키 ARN"
+  type        = string
+  default     = ""
+}
+

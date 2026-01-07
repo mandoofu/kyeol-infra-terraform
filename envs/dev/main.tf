@@ -168,27 +168,13 @@ resource "aws_route53_record" "origin" {
 }
 
 
-# -----------------------------------------------------------------------------
-# CloudTrail Module (P0: 계정당 1개 권장)
-# DEV에서는 기본 OFF - prod에서만 활성화 권장
-# -----------------------------------------------------------------------------
-module "cloudtrail" {
-  source = "../../modules/cloudtrail"
-  count  = var.enable_cloudtrail ? 1 : 0
-
-  name_prefix    = local.name_prefix
-  environment    = var.environment
-  aws_account_id = var.aws_account_id
-
-  enable_cloudtrail      = true
-  enable_data_events     = var.enable_cloudtrail_data_events
-  enable_cloudwatch_logs = var.enable_cloudtrail_cloudwatch
-
-  # KMS는 DEV에서 비활성화, STAGE/PROD는 tfvars에서 설정
-  enable_kms_encryption = false
-
-  tags = local.common_tags
-}
+# =============================================================================
+# CloudTrail - 중앙 수집 모델 (MGMT 단일 활성화)
+# =============================================================================
+# ⚠️ CloudTrail은 MGMT 관리 영역에서만 단일 활성화됩니다.
+# DEV/STAGE/PROD 환경에서는 CloudTrail을 생성하지 않습니다.
+# 모든 감사 로그는 MGMT의 중앙 S3 버킷으로 수집됩니다.
+# =============================================================================
 
 # =============================================================================
 # VPC Peering: MGMT ↔ DEV
