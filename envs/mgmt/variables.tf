@@ -180,3 +180,45 @@ variable "cloudtrail_kms_key_arn" {
   default     = ""
 }
 
+# =============================================================================
+# Phase 4: 로그 분석 자동화 파이프라인
+# EventBridge + Athena + Lambda + Bedrock + Slack
+# =============================================================================
+variable "enable_log_analytics" {
+  description = "로그 분석 자동화 파이프라인 활성화"
+  type        = bool
+  default     = false
+}
+
+variable "slack_webhook_url" {
+  description = "Slack Webhook URL (kyeol-security-alerts 채널)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "slack_channel" {
+  description = "Slack 채널명"
+  type        = string
+  default     = "#kyeol-security-alerts"
+}
+
+variable "enable_daily_report" {
+  description = "일간 보안 리포트 활성화"
+  type        = bool
+  default     = true
+}
+
+variable "enable_weekly_report" {
+  description = "주간 보안 리포트 활성화"
+  type        = bool
+  default     = true
+}
+
+variable "enable_monthly_report" {
+  description = "월간 보안 리포트 활성화"
+  type        = bool
+  default     = true
+}
+
+

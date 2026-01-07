@@ -215,3 +215,42 @@ module "cloudtrail" {
   tags = local.common_tags
 }
 
+# =============================================================================
+# Phase 4: 로그 분석 자동화 파이프라인 (선택)
+# EventBridge + Athena + Lambda + Bedrock + Slack
+# =============================================================================
+module "log_analytics" {
+  source = "../../modules/log_analytics"
+  count  = var.enable_log_analytics ? 1 : 0
+
+  name_prefix    = "${var.owner_prefix}-${var.project_name}"
+  environment    = "mgmt"
+  aws_account_id = var.aws_account_id
+  aws_region     = var.aws_region
+
+  # CloudTrail 감사 로그 버킷 (중앙 수집)
+  audit_bucket_name = var.enable_cloudtrail ? module.cloudtrail[0].audit_bucket_id : ""
+
+  # Slack 알림 설정
+  slack_webhook_url = var.slack_webhook_url
+  slack_channel     = var.slack_channel
+
+  # Bedrock 설정 (저비용 Claude Haiku)
+  bedrock_model_id = "anthropic.claude-3-haiku-20240307-v1:0"
+  bedrock_region   = "us-east-1"
+
+  # ISMS-P 기준 보존 기간 (1년)
+  log_retention_days    = 365
+  report_retention_days = 365
+
+  # 스케줄 설정
+  enable_daily_report   = var.enable_daily_report
+  enable_weekly_report  = var.enable_weekly_report
+  enable_monthly_report = var.enable_monthly_report
+
+  tags = local.common_tags
+
+  depends_on = [module.cloudtrail]
+}
+
+

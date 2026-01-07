@@ -58,3 +58,22 @@ cloudtrail_log_retention_days = 30
 enable_cloudtrail_kms  = false
 cloudtrail_kms_key_arn = ""
 
+# =============================================================================
+# 로그 분석 자동화 파이프라인 (Phase 4)
+# EventBridge + Athena + Lambda + Bedrock (Claude Haiku) + Slack
+# 예상 비용: ~$10/월
+# =============================================================================
+enable_log_analytics = true
+
+# Slack 알림 설정 (kyeol-security-alerts 채널)
+# Webhook URL은 Slack App > Incoming Webhooks에서 생성 후 입력
+# 형식: https://hooks.slack.com/services/[WORKSPACE]/[CHANNEL]/[TOKEN]
+slack_webhook_url = ""  # Slack Webhook URL 입력 필요
+slack_channel     = "#kyeol-security-alerts"
+
+# 리포트 스케줄 (ISMS-P 기준)
+enable_daily_report   = true   # 일간 보안 리포트
+enable_weekly_report  = true   # 주간 보안 리포트
+enable_monthly_report = true   # 월간 보안 리포트
+
+
