@@ -13,7 +13,7 @@ terraform {
 
 resource "aws_wafv2_web_acl" "global" {
   name        = "${var.name_prefix}-global-waf"
-  scope       = "CLOUDFRONT"  # ← Global WAF
+  scope       = "CLOUDFRONT" # ← Global WAF
   description = "Global WAF for CloudFront - All environments (ISMS-P Compliant)"
 
   default_action {

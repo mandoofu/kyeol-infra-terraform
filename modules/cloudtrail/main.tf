@@ -59,7 +59,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "audit" {
     id     = "transition-to-ia"
     status = "Enabled"
 
-    filter {}  # 모든 객체에 적용
+    filter {} # 모든 객체에 적용
 
     transition {
       days          = 90
@@ -72,7 +72,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "audit" {
     }
 
     expiration {
-      days = 2555  # 7년 (규정 준수)
+      days = 2555 # 7년 (규정 준수)
     }
   }
 }
@@ -88,8 +88,8 @@ resource "aws_s3_bucket_policy" "audit" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AWSCloudTrailAclCheck"
-        Effect    = "Allow"
+        Sid    = "AWSCloudTrailAclCheck"
+        Effect = "Allow"
         Principal = {
           Service = "cloudtrail.amazonaws.com"
         }
@@ -102,8 +102,8 @@ resource "aws_s3_bucket_policy" "audit" {
         }
       },
       {
-        Sid       = "AWSCloudTrailWrite"
-        Effect    = "Allow"
+        Sid    = "AWSCloudTrailWrite"
+        Effect = "Allow"
         Principal = {
           Service = "cloudtrail.amazonaws.com"
         }
@@ -121,7 +121,7 @@ resource "aws_s3_bucket_policy" "audit" {
         Effect    = "Deny"
         Principal = "*"
         Action    = "s3:*"
-        Resource  = [
+        Resource = [
           aws_s3_bucket.audit[0].arn,
           "${aws_s3_bucket.audit[0].arn}/*"
         ]

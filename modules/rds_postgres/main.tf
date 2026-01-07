@@ -75,11 +75,12 @@ resource "aws_db_instance" "main" {
   deletion_protection = var.deletion_protection
   skip_final_snapshot = var.skip_final_snapshot
 
-  # Monitoring
-  performance_insights_enabled = true
+  # Monitoring (비용 주의: 7일 무료, 이후 과금)
+  performance_insights_enabled          = var.enable_performance_insights
+  performance_insights_retention_period = var.enable_performance_insights ? var.performance_insights_retention : null
 
   # Upgrades
-  auto_minor_version_upgrade  = true
+  auto_minor_version_upgrade  = var.auto_minor_version_upgrade
   allow_major_version_upgrade = false
 
   tags = merge(var.tags, {

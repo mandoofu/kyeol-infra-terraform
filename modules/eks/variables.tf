@@ -16,9 +16,17 @@ variable "cluster_name" {
 }
 
 variable "cluster_version" {
-  description = "EKS 클러스터 Kubernetes 버전"
+  description = "EKS 클러스터 Kubernetes 버전 (Standard Support 버전만 사용 - Extended Support 과금 방지)"
   type        = string
-  default     = "1.29"
+  default     = "1.32" # Standard Support: ~2026-03-23
+
+  # Extended Support 사용 방지 가드
+  # 1.29 이하: Extended Support 진입 (시간당 $0.60 과금)
+  # 1.31, 1.32: Standard Support (추가 과금 없음)
+  validation {
+    condition     = tonumber(split(".", var.cluster_version)[1]) >= 31
+    error_message = "EKS 버전 1.31 이상만 허용됩니다. 1.30 이하는 Extended Support로 시간당 $0.60 과금됩니다."
+  }
 }
 
 # 네트워크
@@ -108,11 +116,33 @@ variable "external_dns_hosted_zone_id" {
   default     = ""
 }
 
-# 추가 설정
+# =============================================================================
+# CloudWatch Logs 설정 (ISMS-P 기준)
+# =============================================================================
+# 로그 수집 정책:
+#   - DEV/STAGE: 기본 비활성화 (비용 절감)
+#   - PROD: audit 로그만 활성화 (ISMS-P 필수 + 비용 최적화)
+#   - MGMT: authenticator 추가 (관리 클러스터 보안)
+#
+# 로그 타입별 용도:
+#   - api: API 서버 요청/응답 로그 (디버깅용, 비용 높음)
+#   - audit: 감사 로그 (ISMS-P 필수, 접근 기록)
+#   - authenticator: 인증 로그 (보안 분석용)
+#   - controllerManager: 컨트롤러 로그 (장애 분석용)
+#   - scheduler: 스케줄러 로그 (장애 분석용)
+# =============================================================================
 variable "enabled_cluster_log_types" {
-  description = "활성화할 클러스터 로그 타입"
+  description = "활성화할 EKS 클러스터 로그 타입 (비용 주의: 저장/수집 과금)"
   type        = list(string)
-  default     = ["api", "audit", "authenticator"]
+  default     = [] # 기본 비활성화 (비용 방지)
+
+  validation {
+    condition = alltrue([
+      for log_type in var.enabled_cluster_log_types :
+      contains(["api", "audit", "authenticator", "controllerManager", "scheduler"], log_type)
+    ])
+    error_message = "유효한 로그 타입: api, audit, authenticator, controllerManager, scheduler"
+  }
 }
 
 variable "endpoint_private_access" {

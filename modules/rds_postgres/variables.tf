@@ -118,3 +118,30 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# =============================================================================
+# 모니터링 설정 (비용 주의)
+# =============================================================================
+variable "enable_performance_insights" {
+  description = "Performance Insights 활성화 (7일 무료, 이후 과금)"
+  type        = bool
+  default     = false # 기본 비활성화 (비용 방지)
+}
+
+variable "performance_insights_retention" {
+  description = "Performance Insights 보존 기간 (7=무료, 31+=유료)"
+  type        = number
+  default     = 7 # 무료 범위
+
+  validation {
+    condition     = var.performance_insights_retention == 7 || var.performance_insights_retention >= 31
+    error_message = "Performance Insights 보존 기간은 7일(무료) 또는 31일 이상만 허용됩니다."
+  }
+}
+
+variable "auto_minor_version_upgrade" {
+  description = "마이너 버전 자동 업그레이드 (Extended Support 방지를 위해 true 권장)"
+  type        = bool
+  default     = true
+}
+

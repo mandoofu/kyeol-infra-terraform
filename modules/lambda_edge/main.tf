@@ -32,7 +32,7 @@ resource "aws_lambda_function" "edge" {
   runtime          = var.runtime
   timeout          = var.timeout
   memory_size      = var.memory_size
-  publish          = true  # 버전 발행 필수 (CloudFront 연결용)
+  publish          = true # 버전 발행 필수 (CloudFront 연결용)
 
   tags = merge(var.tags, {
     Name  = "${var.name_prefix}-${var.function_name_suffix}"

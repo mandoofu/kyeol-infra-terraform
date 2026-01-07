@@ -111,7 +111,7 @@ resource "aws_cloudfront_cache_policy" "default" {
   comment     = "Default cache policy for dynamic content"
   min_ttl     = 0
   default_ttl = var.default_ttl
-  max_ttl     = 31536000  # 1년
+  max_ttl     = 31536000 # 1년
 
   parameters_in_cache_key_and_forwarded_to_origin {
     cookies_config {
@@ -132,9 +132,9 @@ resource "aws_cloudfront_cache_policy" "default" {
 resource "aws_cloudfront_cache_policy" "static" {
   name        = "${var.name_prefix}-cache-policy-static"
   comment     = "Long-term cache for static assets"
-  min_ttl     = 86400      # 1일
-  default_ttl = 604800     # 7일
-  max_ttl     = 31536000   # 1년
+  min_ttl     = 86400    # 1일
+  default_ttl = 604800   # 7일
+  max_ttl     = 31536000 # 1년
 
   parameters_in_cache_key_and_forwarded_to_origin {
     cookies_config {

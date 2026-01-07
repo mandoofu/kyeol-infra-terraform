@@ -84,3 +84,26 @@ enable_cloudtrail             = false  # true → false
 enable_cloudtrail_data_events = false
 enable_cloudtrail_cloudwatch  = false
 enable_cloudtrail_kms         = false
+
+# =============================================================================
+# NAT Gateway (비용 주의: 월 $32+)
+# PROD: 운영 필수
+# =============================================================================
+enable_nat_gateway = true
+
+# =============================================================================
+# CloudWatch Logs (ISMS-P 기준 + 비용 최적화)
+# PROD: audit 로그만 활성화 (ISMS-P 감사 필수)
+#   - api: 비활성화 (비용 높음, 디버깅용)
+#   - audit: 활성화 (ISMS-P 필수)
+#   - authenticator: 선택 (보안 강화 시)
+# =============================================================================
+enabled_cluster_log_types = ["audit"]  # ISMS-P 최소 요구사항
+
+# =============================================================================
+# RDS Performance Insights (비용 주의: 7일 무료, 이후 과금)
+# PROD: 성능 분석 필요 시에만 활성화
+# =============================================================================
+enable_performance_insights    = false  # 필요 시 true
+performance_insights_retention = 7      # 무료 범위
+

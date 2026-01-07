@@ -53,13 +53,13 @@ variable "enable_logging" {
 variable "price_class" {
   description = "CloudFront Price Class (PriceClass_All, PriceClass_200, PriceClass_100)"
   type        = string
-  default     = "PriceClass_200"  # 아시아/유럽/북미
+  default     = "PriceClass_200" # 아시아/유럽/북미
 }
 
 variable "default_ttl" {
   description = "기본 캐시 TTL (초)"
   type        = number
-  default     = 86400  # 1일
+  default     = 86400 # 1일
 }
 
 variable "tags" {

@@ -43,11 +43,13 @@ variable "cache_private_subnet_cidrs" {
   default     = []
 }
 
-# NAT Gateway 설정
+# =============================================================================
+# NAT Gateway 설정 (비용 주의: 월 $32+ 발생)
+# =============================================================================
 variable "enable_nat_gateway" {
-  description = "NAT Gateway 생성 여부"
+  description = "NAT Gateway 생성 여부 (비용 주의: 월 $32 + 데이터 처리 비용)"
   type        = bool
-  default     = true
+  default     = false # 기본 비활성화 (비용 방지)
 }
 
 variable "single_nat_gateway" {
@@ -89,3 +91,13 @@ variable "eks_cluster_name" {
   type        = string
   default     = ""
 }
+
+# =============================================================================
+# Public IPv4 설정 (비용 주의: $0.005/IP/시간)
+# =============================================================================
+variable "map_public_ip_on_launch" {
+  description = "Public 서브넷 EC2에 Public IPv4 자동 할당 (비용 주의)"
+  type        = bool
+  default     = false # 기본 비활성화 (IPv4 비용 방지)
+}
+
