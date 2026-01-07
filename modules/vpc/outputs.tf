@@ -96,3 +96,15 @@ output "payment_subnet_ids" {
   description = "결제 전용 서브넷 ID 목록"
   value       = aws_subnet.payment_private[*].id
 }
+
+# =============================================================================
+# VPC Peering용 출력값
+# =============================================================================
+output "all_route_table_ids" {
+  description = "모든 라우트 테이블 ID 목록 (VPC Peering 라우팅용)"
+  value = compact([
+    aws_route_table.public.id,
+    aws_route_table.private.id,
+    var.enable_payment_nat ? aws_route_table.payment[0].id : ""
+  ])
+}

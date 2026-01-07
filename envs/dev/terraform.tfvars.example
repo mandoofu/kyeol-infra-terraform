@@ -62,3 +62,25 @@ enable_fluent_bit_irsa = false  # 로그 수집 비활성화
 # CloudTrail/WAF/CloudFront (비활성화)
 # =============================================================================
 enable_cloudtrail = false
+
+# =============================================================================
+# VPC Peering 설정 (MGMT ↔ DEV)
+# ArgoCD(MGMT)가 DEV EKS Private Endpoint로 접근하기 위해 활성화
+# =============================================================================
+enable_vpc_peering     = false  # VPC Peering 활성화 시 true
+terraform_state_bucket = ""     # 예: "min-kyeol-terraform-state"
+
+# =============================================================================
+# EKS Endpoint 설정 (Private Endpoint 전환 시 변경)
+# =============================================================================
+# Private Endpoint만 사용 (보안 강화)
+endpoint_private_access = true
+endpoint_public_access  = true   # Private 전환 시 false로 변경
+
+# Public Endpoint 접근 제한 (관리자 IP만 허용)
+# endpoint_public_access = true
+# public_access_cidrs    = ["YOUR_ADMIN_IP/32"]
+
+# MGMT VPC CIDR (ArgoCD에서 EKS API 접근 허용)
+mgmt_vpc_cidrs = ["10.40.0.0/16"]
+

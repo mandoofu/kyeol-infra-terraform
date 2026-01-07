@@ -21,6 +21,24 @@ output "nat_gateway_public_ip" {
   value       = module.vpc.nat_gateway_public_ip
 }
 
+# =============================================================================
+# VPC Peering용 출력값 (DEV/STAGE/PROD에서 참조)
+# =============================================================================
+output "vpc_cidr" {
+  description = "MGMT VPC CIDR (VPC Peering용)"
+  value       = var.vpc_cidr
+}
+
+output "private_route_table_id" {
+  description = "MGMT Private Route Table ID (VPC Peering 라우팅용)"
+  value       = module.vpc.private_route_table_id
+}
+
+output "all_route_table_ids" {
+  description = "MGMT 모든 Route Table ID 목록"
+  value       = module.vpc.all_route_table_ids
+}
+
 # EKS
 output "eks_cluster_name" {
   description = "EKS 클러스터 이름"

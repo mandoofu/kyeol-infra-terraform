@@ -133,6 +133,15 @@ variable "public_access_cidrs" {
   default     = ["0.0.0.0/0"]
 }
 
+# =============================================================================
+# Private Endpoint 접근 설정 (VPC Peering용)
+# =============================================================================
+variable "mgmt_vpc_cidrs" {
+  description = "MGMT VPC CIDR 목록 (ArgoCD가 EKS Private Endpoint에 접근 허용)"
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "추가 태그"
   type        = map(string)

@@ -234,3 +234,44 @@ variable "cloudtrail_kms_key_arn" {
   type        = string
   default     = ""
 }
+
+# =============================================================================
+# VPC Peering 설정 (MGMT ↔ STAGE Private Endpoint 연결)
+# =============================================================================
+variable "enable_vpc_peering" {
+  description = "MGMT VPC와 VPC Peering 활성화 (ArgoCD Private Endpoint 접근용)"
+  type        = bool
+  default     = false
+}
+
+variable "terraform_state_bucket" {
+  description = "Terraform 상태 파일 S3 버킷 (MGMT State 참조용)"
+  type        = string
+  default     = ""
+}
+
+# EKS Endpoint 설정
+variable "endpoint_private_access" {
+  description = "EKS API Private Endpoint 활성화"
+  type        = bool
+  default     = true
+}
+
+variable "endpoint_public_access" {
+  description = "EKS API Public Endpoint 활성화 (Private 전환 시 false)"
+  type        = bool
+  default     = true
+}
+
+variable "public_access_cidrs" {
+  description = "EKS Public Endpoint 접근 허용 CIDR (최소화 권장)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "mgmt_vpc_cidrs" {
+  description = "MGMT VPC CIDR (EKS Security Group에서 ArgoCD 접근 허용)"
+  type        = list(string)
+  default     = []
+}
+

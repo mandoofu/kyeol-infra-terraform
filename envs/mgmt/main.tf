@@ -175,7 +175,7 @@ module "cloudfront" {
   }
 
   name_prefix         = "${var.owner_prefix}-${var.project_name}"
-  environment         = "prod"  # CloudFront는 PROD 대표
+  environment         = "prod" # CloudFront는 PROD 대표
   domain              = var.domain
   domain_aliases      = [var.domain, "www.${var.domain}"]
   origin_domain       = "origin-prod.${var.domain}"

@@ -102,7 +102,7 @@ resource "aws_eks_node_group" "payment" {
   subnet_ids      = var.payment_subnet_ids
 
   instance_types = var.payment_node_instance_types
-  capacity_type  = "ON_DEMAND"  # 결제는 안정성 우선
+  capacity_type  = "ON_DEMAND" # 결제는 안정성 우선
   disk_size      = var.node_disk_size
 
   scaling_config {

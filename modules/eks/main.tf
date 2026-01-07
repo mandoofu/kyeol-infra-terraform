@@ -63,6 +63,22 @@ resource "aws_security_group_rule" "cluster_egress" {
 }
 
 # -----------------------------------------------------------------------------
+# MGMT VPC에서 EKS API 접근 허용 (Private Endpoint + VPC Peering용)
+# ArgoCD(MGMT)가 각 환경 EKS에 Private endpoint로 접근하기 위해 필요
+# -----------------------------------------------------------------------------
+resource "aws_security_group_rule" "cluster_mgmt_ingress" {
+  count = length(var.mgmt_vpc_cidrs) > 0 ? 1 : 0
+
+  security_group_id = aws_security_group.cluster.id
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = var.mgmt_vpc_cidrs
+  description       = "Allow HTTPS from MGMT VPC for ArgoCD (Private Endpoint)"
+}
+
+# -----------------------------------------------------------------------------
 # EKS Cluster
 # -----------------------------------------------------------------------------
 resource "aws_eks_cluster" "main" {
