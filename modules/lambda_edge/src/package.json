@@ -1,0 +1,17 @@
+{
+    "name": "image-resize-lambda-edge",
+    "version": "1.0.0",
+    "description": "Lambda@Edge image resizing handler",
+    "main": "origin-response.js",
+    "scripts": {
+        "build": "npm install --production && zip -r ../lambda-image-resize.zip ."
+    },
+    "dependencies": {
+        "sharp": "^0.33.2"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "author": "KYEOL Team",
+    "license": "MIT"
+}

@@ -67,3 +67,43 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# =============================================================================
+# Lambda@Edge 이미지 리사이징 설정
+# =============================================================================
+variable "enable_image_resize" {
+  description = "Lambda@Edge 이미지 리사이징 활성화"
+  type        = bool
+  default     = false
+}
+
+variable "image_bucket_domain_name" {
+  description = "이미지 원본 저장 S3 버킷 도메인 (예: bucket.s3.ap-southeast-2.amazonaws.com)"
+  type        = string
+  default     = ""
+}
+
+variable "image_bucket_arn" {
+  description = "이미지 원본 저장 S3 버킷 ARN"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_edge_viewer_request_arn" {
+  description = "Lambda@Edge Viewer Request 함수 Qualified ARN"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_edge_origin_response_arn" {
+  description = "Lambda@Edge Origin Response 함수 Qualified ARN"
+  type        = string
+  default     = ""
+}
+
+variable "image_cache_ttl" {
+  description = "이미지 캐시 TTL (초)"
+  type        = number
+  default     = 31536000 # 1년
+}
+

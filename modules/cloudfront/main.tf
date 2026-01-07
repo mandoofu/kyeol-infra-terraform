@@ -36,6 +36,17 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
+  # S3 이미지 Origin (Lambda@Edge 이미지 리사이징용)
+  dynamic "origin" {
+    for_each = var.enable_image_resize && var.image_bucket_domain_name != "" ? [1] : []
+    content {
+      domain_name              = var.image_bucket_domain_name
+      origin_id                = "s3-image-origin"
+      origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac[0].id
+    }
+  }
+
+
   # 기본 캐시 동작
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
@@ -70,6 +81,42 @@ resource "aws_cloudfront_distribution" "main" {
 
     cache_policy_id = aws_cloudfront_cache_policy.static.id
   }
+
+  # 이미지 리사이징 캐시 동작 (Lambda@Edge 연결)
+  dynamic "ordered_cache_behavior" {
+    for_each = var.enable_image_resize ? [1] : []
+    content {
+      path_pattern           = "/images/*"
+      allowed_methods        = ["GET", "HEAD"]
+      cached_methods         = ["GET", "HEAD"]
+      target_origin_id       = "s3-image-origin"
+      viewer_protocol_policy = "redirect-to-https"
+      compress               = true
+
+      cache_policy_id          = aws_cloudfront_cache_policy.image[0].id
+      origin_request_policy_id = aws_cloudfront_origin_request_policy.image[0].id
+
+      # Lambda@Edge 연결
+      dynamic "lambda_function_association" {
+        for_each = var.lambda_edge_viewer_request_arn != "" ? [1] : []
+        content {
+          event_type   = "viewer-request"
+          lambda_arn   = var.lambda_edge_viewer_request_arn
+          include_body = false
+        }
+      }
+
+      dynamic "lambda_function_association" {
+        for_each = var.lambda_edge_origin_response_arn != "" ? [1] : []
+        content {
+          event_type   = "origin-response"
+          lambda_arn   = var.lambda_edge_origin_response_arn
+          include_body = true
+        }
+      }
+    }
+  }
+
 
   # SSL 인증서 (us-east-1 ACM 필수)
   viewer_certificate {
@@ -171,3 +218,75 @@ resource "aws_cloudfront_origin_request_policy" "default" {
     query_string_behavior = "all"
   }
 }
+
+# =============================================================================
+# Lambda@Edge 이미지 리사이징 관련 리소스
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# S3 Origin Access Control (OAC)
+# CloudFront → S3 프라이빗 액세스
+# -----------------------------------------------------------------------------
+resource "aws_cloudfront_origin_access_control" "s3_oac" {
+  count = var.enable_image_resize ? 1 : 0
+
+  name                              = "${var.name_prefix}-s3-oac"
+  description                       = "OAC for S3 image bucket"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+# -----------------------------------------------------------------------------
+# Cache Policy - 이미지 (장기 캐시 + WebP 지원)
+# -----------------------------------------------------------------------------
+resource "aws_cloudfront_cache_policy" "image" {
+  count = var.enable_image_resize ? 1 : 0
+
+  name        = "${var.name_prefix}-cache-policy-image"
+  comment     = "Long-term cache for resized images"
+  min_ttl     = 86400 # 1일
+  default_ttl = var.image_cache_ttl
+  max_ttl     = 31536000 # 1년
+
+  parameters_in_cache_key_and_forwarded_to_origin {
+    cookies_config {
+      cookie_behavior = "none"
+    }
+    headers_config {
+      header_behavior = "whitelist"
+      headers {
+        items = ["Accept"] # WebP 지원 감지용
+      }
+    }
+    query_strings_config {
+      query_string_behavior = "none"
+    }
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Origin Request Policy - 이미지
+# -----------------------------------------------------------------------------
+resource "aws_cloudfront_origin_request_policy" "image" {
+  count = var.enable_image_resize ? 1 : 0
+
+  name    = "${var.name_prefix}-origin-request-policy-image"
+  comment = "Forward Accept header for WebP detection"
+
+  cookies_config {
+    cookie_behavior = "none"
+  }
+
+  headers_config {
+    header_behavior = "whitelist"
+    headers {
+      items = ["Accept", "Origin"]
+    }
+  }
+
+  query_strings_config {
+    query_string_behavior = "none"
+  }
+}
+
